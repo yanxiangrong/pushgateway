@@ -55,6 +55,8 @@ type DiskMetricStore struct {
 	persistenceFile string
 	predefinedHelp  map[string]string
 	logger          *slog.Logger
+	expireDuration  time.Duration
+	cleanupInterval time.Duration
 }
 
 type mfStat struct {
@@ -80,6 +82,8 @@ func NewDiskMetricStore(
 	persistenceInterval time.Duration,
 	gatherPredefinedHelpFrom prometheus.Gatherer,
 	logger *slog.Logger,
+	expireDuration time.Duration,
+	cleanupInterval time.Duration,
 ) *DiskMetricStore {
 	// TODO: Do that outside of the constructor to allow the HTTP server to
 	//  serve /-/healthy and /-/ready earlier.
@@ -90,6 +94,8 @@ func NewDiskMetricStore(
 		metricGroups:    GroupingKeyToMetricGroup{},
 		persistenceFile: persistenceFile,
 		logger:          logger,
+		expireDuration:  expireDuration,
+		cleanupInterval: cleanupInterval,
 	}
 	if err := dms.restore(); err != nil {
 		logger.Error("could not load persisted metrics", "err", err)
@@ -101,6 +107,7 @@ func NewDiskMetricStore(
 	}
 
 	go dms.loop(persistenceInterval)
+	go dms.cleanupLoop()
 	return dms
 }
 
@@ -606,4 +613,31 @@ func (s labelPairs) Swap(i, j int) {
 
 func (s labelPairs) Less(i, j int) bool {
 	return s[i].GetName() < s[j].GetName()
+}
+
+func (dms *DiskMetricStore) cleanupLoop() {
+	ticker := time.NewTicker(dms.cleanupInterval)
+	defer ticker.Stop()
+	for range ticker.C {
+		now := time.Now()
+		dms.lock.Lock()
+		for key, group := range dms.metricGroups {
+			for name, tmf := range group.Metrics {
+				// 跳过 push_time_seconds 和 push_failure_time_seconds
+				if name == pushMetricName || name == pushFailedMetricName {
+					continue
+				}
+				if now.Sub(tmf.Timestamp) > dms.expireDuration {
+					delete(group.Metrics, name)
+					dms.logger.Info("metric expired and deleted", "group", key, "metric", name)
+				}
+			}
+			// 如果分组下没有指标了（只剩特殊指标），可以删除整个分组
+			if len(group.Metrics) == 2 { // 只剩 push_time_seconds 和 push_failure_time_seconds
+				delete(dms.metricGroups, key)
+				dms.logger.Info("metric group expired and deleted", "group", key)
+			}
+		}
+		dms.lock.Unlock()
+	}
 }
