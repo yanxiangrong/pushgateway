@@ -44,7 +44,3 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-
-      # 可选：发布成功后输出镜像地址
-      - name: Show image url
-        run: echo "Image published: ghcr.io/${{ github.repository }}:latest"
