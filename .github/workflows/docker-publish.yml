@@ -30,7 +30,7 @@ jobs:
       - name: Build pushgateway binary
         run: |
           mkdir -p .build/linux-amd64
-          GOOS=linux GOARCH=amd64 go build -o .build/linux-amd64/pushgateway ./cmd/pushgateway
+          GOOS=linux GOARCH=amd64 go build -o .build/linux-amd64/pushgateway .
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
