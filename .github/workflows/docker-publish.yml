@@ -30,6 +30,9 @@ jobs:
       - name: Build pushgateway binary
         run: make build
 
+      - name: List build output
+        run: ls -lh .build/linux-amd64/
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
