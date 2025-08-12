@@ -25,13 +25,15 @@ jobs:
       - name: Install promu dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y curl tar tree
+          sudo apt-get install -y curl tar
 
       - name: Build pushgateway binary
         run: make build
 
-      - name: List build output
-        run: tree -a
+      - name: Copy binary to .build/linux-amd64
+        run: |
+          mkdir -p .build/linux-amd64
+          cp ./pushgateway .build/linux-amd64/pushgateway
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
