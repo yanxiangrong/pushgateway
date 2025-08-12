@@ -31,7 +31,7 @@ jobs:
         run: make build
 
       - name: List build output
-        run: tree
+        run: tree -a
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
