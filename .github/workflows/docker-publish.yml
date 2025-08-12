@@ -25,13 +25,13 @@ jobs:
       - name: Build pushgateway binary
         run: make build
 
-#      - name: Copy binary to .build/linux-amd64
-#        run: |
-#          mkdir -p .build/linux-amd64
-#          cp ./pushgateway .build/linux-amd64/pushgateway
-#          echo "Copied binary info:"
-#          realpath .build/linux-amd64/pushgateway
-#          ls -lh .build/linux-amd64/pushgateway
+      - name: Copy binary to .build/linux-amd64
+        run: |
+          mkdir -p .build/linux-amd64
+          cp ./pushgateway .build/linux-amd64/pushgateway
+          echo "Copied binary info:"
+          realpath .build/linux-amd64/pushgateway
+          ls -lh .build/linux-amd64/pushgateway
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
