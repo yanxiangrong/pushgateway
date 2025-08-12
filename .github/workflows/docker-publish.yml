@@ -55,6 +55,4 @@ jobs:
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
-          build-args: |
-            ARCH=amd64
-            OS=linux
+          platforms: linux/amd64
